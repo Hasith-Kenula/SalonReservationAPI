@@ -47,31 +47,38 @@ exports.getSpecific = async (req, res) => {
 };
 //register a new customer
 exports.register = async (req, res) => {
+  console.log("Registering new customer");
   try {
     const customerID = await generateID();
-    const { name, phone, password, address } = req.body;
+    const { fullName, phone, password, address } = req.body;
 
-    const isExists = await db.query("SELECT * FROM customer WHERE phone = ?", [
-      phone,
-    ]);
+    console.log(`Data: ${phone}`);
+
+    const [isExists] = await db.query(
+      "SELECT * FROM customer WHERE phone = ?",
+      [phone]
+    );
     if (isExists.length > 0) {
       return res.status(409).json({
+        success: false,
         message: "Phone number already registered!",
       });
     }
-    const query = "INSERT INTO customer VALUES(?, ?, ?, ?, ?)";
-    const result = await db.query(query, [
+    const query =
+      "INSERT INTO customer(customerID, fullName, phone, password, address) VALUES(?, ?, ?, ?, ?)";
+    const [result] = await db.query(query, [
       customerID,
-      name,
+      fullName,
       phone,
       password,
       address,
     ]);
-    res.status(200).send({
-      message: "Customer created successfully",
-      customerID: customerID,
-      result: result,
-    });
+    if (result.affectedRows > 0) {
+      res.status(200).send({
+        success: true,
+        message: "Registered successfully",
+      });
+    }
   } catch (err) {
     console.log(err);
     res.status(500).send({ message: "Error creating customer" });
@@ -99,5 +106,41 @@ exports.login = async (req, res) => {
     res.status(500).json({
       message: "Somthing wrong with login!",
     });
+  }
+};
+
+exports.update = async (req, res) => {
+  console.log("here");
+  const { customerID, fullName, phone, address } = req.body;
+  console.log("Data: " + req.body.customerID);
+  console.log("Data: " + req.body.fullName);
+  console.log("Data: " + req.body.phone);
+  console.log("Data: " + req.body.address);
+  try {
+    const query =
+      "UPDATE customer SET fullName = ?, phone = ?, address = ? WHERE customerID = ?";
+    const [result] = await db.query(query, [
+      fullName,
+      phone,
+      address,
+      customerID,
+    ]);
+    console.log("Result: " + result.affectedRows);
+    if (result.affectedRows > 0) {
+      console.log("customer updated");
+      res.status(200).json({
+        success: true,
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: "Profile not updated",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ success: false, message: "Database error" + error.message });
   }
 };

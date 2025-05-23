@@ -100,3 +100,32 @@ exports.login = async (req, res) => {
     });
   }
 };
+exports.update = async (req, res) => {
+  const { salonID, SalonName, ownerName, phone, address } = req.body;
+  try {
+    const query =
+      "UPDATE salon SET SalonName = ?, ownerName = ?, phone = ?, address = ? WHERE salonID = ?";
+    const result = await db.query(query, [
+      SalonName,
+      ownerName,
+      phone,
+      address,
+      salonID,
+    ]);
+    if (result.affectedRows > 0) {
+      res.status(200).json({
+        success: true,
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: "Profile not updated",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ success: false, message: "Database error" + error.message });
+  }
+};
