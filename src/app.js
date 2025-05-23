@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const reservationRoutes = require("./routes/reservation");
 const salonRoutes = require("./routes/salon");
 const customerRoutes = require("./routes/customer");
+const servicesRoutes = require("./routes/service");
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use((req, res, next) => {
 app.use("/reservations", reservationRoutes);
 app.use("/salons", salonRoutes);
 app.use("/customers", customerRoutes);
+app.use("/services", servicesRoutes);
 
 app.get("/test", (req, res) => {
   res.status(200).json({

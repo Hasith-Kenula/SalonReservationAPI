@@ -93,17 +93,20 @@ exports.login = async (req, res) => {
     const [result] = await db.query(query, [phone, password]);
     if (result.length > 0) {
       res.status(200).json({
-        message: "successful",
-        Data: result[0], //return the customer data
+        success: true,
+        message: "Login successfully",
+        Data: result[0],
       });
     } else {
       res.status(401).json({
+        success: false,
         message: "Invalid phone number or password",
       });
     }
   } catch (err) {
     console.log(err);
     res.status(500).json({
+      success: false,
       message: "Somthing wrong with login!",
     });
   }

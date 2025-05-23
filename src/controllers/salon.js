@@ -1,5 +1,6 @@
 const db = require("../bd");
 const { getSpecific } = require("./reservation");
+const { v4: uuidv4 } = require("uuid");
 
 // for create unique id for salon
 const generateID = async () => {
@@ -49,15 +50,24 @@ exports.getSpecific = (req, res) => {
 };
 //register new salon in database
 exports.register = async (req, res) => {
+  console.log("Registering a new salon");
   try {
     const { salonName, ownerName, phone, password, address } = req.body;
+    console.log(
+      `Data: ${salonName}, ${ownerName}, ${phone}, ${password}, ${address}`
+    );
 
-    const [rows] = db.query("SELECT * FROM salon WHERE phone = ?", [phone]);
+    const [rows] = await db.query("SELECT * FROM salon WHERE phone = ?", [
+      phone,
+    ]);
     if (rows.length > 0) {
-      return res.status(400).json({ message: "Salon already exists" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Salon already exists" });
     }
 
     const salonID = await generateID();
+    console.log(`SalonID: ${salonID}`);
     const query =
       "INSERT INTO salon (salonID, SalonName, ownerName, phone, password, address) VALUES(?, ?, ?, ?, ?, ?)";
     const [result] = await db.query(query, [
@@ -68,10 +78,12 @@ exports.register = async (req, res) => {
       password,
       address,
     ]);
-    res.json({
-      message: "successfull",
-      Data: result[0],
-    });
+    if (result.affectedRows > 0) {
+      res.json({
+        success: true,
+        message: "Salon registered successfully",
+      });
+    }
   } catch (err) {
     console.log(err);
     res.status(500).json({
@@ -81,45 +93,56 @@ exports.register = async (req, res) => {
 };
 //check login validtion
 exports.login = async (req, res) => {
+  console.log("Logging in a salon");
   try {
     const { phone, password } = req.body;
+    console.log(req.body);
     const query = "SELECT * FROM salon WHERE phone = ? AND password = ?";
     const [rows] = await db.query(query, [phone, password]);
     if (rows.length > 0) {
       res.status(200).json({
-        message: "successfull",
+        success: true,
+        message: "Login successfully",
         Data: rows[0],
       });
     } else {
-      res.status(400).json({ message: "Invalid phone or password" });
+      res.status(400).json({
+        success: false,
+        message: "Invalid phone or password!",
+      });
     }
   } catch (error) {
     console.log(error);
     res.status(500).json({
+      success: false,
       message: "Something went wrong with login: " + error.message,
     });
   }
 };
 exports.update = async (req, res) => {
-  const { salonID, SalonName, ownerName, phone, address } = req.body;
+  console.log("--------------Updating salon--------------: ");
+  const { salonID, salonName, ownerName, phone, address } = req.body;
+  console.log(req.body);
   try {
     const query =
-      "UPDATE salon SET SalonName = ?, ownerName = ?, phone = ?, address = ? WHERE salonID = ?";
-    const result = await db.query(query, [
-      SalonName,
+      "UPDATE salon SET salonName = ?, ownerName = ?, phone = ?, address = ? WHERE salonID = ?";
+    const [result] = await db.query(query, [
+      salonName,
       ownerName,
       phone,
       address,
       salonID,
     ]);
     if (result.affectedRows > 0) {
+      console.log(`Salon updated successfully - ${salonID}`);
       res.status(200).json({
         success: true,
+        message: "Salon updated successfully",
       });
     } else {
       res.status(400).json({
         success: false,
-        message: "Profile not updated",
+        message: "Salon profile not updated",
       });
     }
   } catch (error) {
