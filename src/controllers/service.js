@@ -149,3 +149,32 @@ exports.update = async (req, res) => {
     }
   } catch (error) {}
 };
+exports.getAllServices = async (req, res) => {
+  console.log(
+    "-----------------------Getting all services-----------------------"
+  );
+  try {
+    const query = "SELECT * FROM service";
+    const [result] = await db.query(query);
+
+    if (result.length > 0) {
+      res.status(200).json({
+        success: true,
+        message: "Services retrieved successfully",
+        data: result,
+      });
+      console.log("Services retrieved successfully");
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "No services found",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};

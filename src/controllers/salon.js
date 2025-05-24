@@ -21,8 +21,9 @@ exports.getAll = async (req, res) => {
     const query = "SELECT * FROM salon";
     const [rows] = await db.query(query);
     res.status(200).json({
-      message: "successfull",
-      Data: rows,
+      success: true,
+      message: "Salon details fetched successfully",
+      data: rows,
     });
   } catch (error) {
     console.log(error);
@@ -121,9 +122,11 @@ exports.login = async (req, res) => {
 };
 exports.update = async (req, res) => {
   console.log("--------------Updating salon--------------: ");
-  const { salonID, salonName, ownerName, phone, address } = req.body;
-  console.log(req.body);
   try {
+    const { salonID } = req.params;
+    const { salonName, ownerName, phone, address } = req.body;
+    console.log(req.params + req.body);
+
     const query =
       "UPDATE salon SET salonName = ?, ownerName = ?, phone = ?, address = ? WHERE salonID = ?";
     const [result] = await db.query(query, [

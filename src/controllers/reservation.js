@@ -57,10 +57,17 @@ exports.getSpecific = async (req, res) => {
 //make a new reservation
 exports.reserve = async (req, res) => {
   try {
-    const { salonID, customerID, resDate, resTime } = req.body;
+    const { salonID, customerID, resDate, resTime, resServices } = req.body;
+    console.log(resServices);
     const resID = await generateID(salonID, customerID);
+    if (!Array.isArray(resServices) || resServices.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please select at least one service",
+      });
+    }
     const query =
-      "INSERT INTO (resID, salonID,customerID, resDate, resTime, resStatus)reservation VALUES(?,?,?,?,?,?)";
+      "INSERT INTO reservation(resID, salonID,customerID, resDate, resTime, resStatus) VALUES(?,?,?,?,?,?)";
     const [rows] = await db.query(query, [
       resID,
       salonID,
@@ -69,10 +76,32 @@ exports.reserve = async (req, res) => {
       resTime,
       "pending",
     ]);
-    res.status(200).json({
-      Message: "successfull",
-      Data: rows,
-    });
+    if (rows.affectedRows > 0) {
+      const query2 =
+        "INSERT INTO reservation_service(resID, serviceID) VALUES ?";
+      const values = resServices.map((service) => [resID, service.serviceID]);
+      console.log("Values: " + values);
+      const [rows2] = await db.query(query2, [values]);
+      if (rows2.affectedRows > 0) {
+        res.status(201).json({
+          success: true,
+          message: "successfull",
+          data: {
+            resID: resID,
+          },
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: "Failed to add services to reservation",
+        });
+      }
+    } else {
+      res.status(400).json({
+        success: false,
+        message: "Failed to create reservation",
+      });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -113,13 +113,16 @@ exports.login = async (req, res) => {
 };
 
 exports.update = async (req, res) => {
-  console.log("here");
-  const { customerID, fullName, phone, address } = req.body;
-  console.log("Data: " + req.body.customerID);
-  console.log("Data: " + req.body.fullName);
-  console.log("Data: " + req.body.phone);
-  console.log("Data: " + req.body.address);
+  console.log(
+    `------------Updating customer(id = ${req.params.customerID})------------`
+  );
   try {
+    const { customerID } = req.params;
+    const { fullName, phone, address } = req.body;
+    console.log("Data: " + req.params.customerID);
+    console.log("Data: " + req.body.fullName);
+    console.log("Data: " + req.body.phone);
+    console.log("Data: " + req.body.address);
     const query =
       "UPDATE customer SET fullName = ?, phone = ?, address = ? WHERE customerID = ?";
     const [result] = await db.query(query, [
