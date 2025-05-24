@@ -15,12 +15,23 @@ const generateID = async () => {
   }
   return id;
 };
-exports.getAll = async (req, res) => {
-  console.log("----------ferching all services----------");
+const getServiceByID = async (serviceID) => {
   try {
-    const query = "SELECT * FROM service";
-    const [result] = await db.query(query);
+    const query = "SELECT * FROM service WHERE serviceID = ?";
+    const [rows] = await db.query(query, [serviceID]);
+    return rows.length > 0 ? rows[0] : false;
+  } catch (error) {
+    console.log(error);
+  }
+};
+exports.getSalonServices = async (req, res) => {
+  const { salonID } = req.params;
+  console.log(`----------ferching services by salon (${salonID})----------`);
+  try {
+    const query = "SELECT * FROM service WHERE salonID = ?";
+    const [result] = await db.query(query, [salonID]);
     if (result.length > 0) {
+      console.log([result]);
       res.status(200).json({
         success: true,
         message: "Services retrieved successfully",
@@ -50,11 +61,19 @@ exports.create = async (req, res) => {
       durationMinutes,
     ]);
     if (result.affectedRows > 0) {
-      res.status(201).json({
-        success: true,
-        message: "Service created successfully",
-        data: result,
-      });
+      const newService = await getServiceByID(serviceID);
+      if (newService) {
+        res.status(201).json({
+          success: true,
+          message: "Service created successfully",
+          data: newService,
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          message: "Newly created service not found",
+        });
+      }
       console.log("Service created successfully");
     } else {
       res.status(400).json({
@@ -71,9 +90,38 @@ exports.create = async (req, res) => {
     });
   }
 };
-
+exports.delete = async (req, res) => {
+  const { serviceID } = req.params;
+  console.log(
+    `----------------Deleting a service (${serviceID})----------------`
+  );
+  try {
+    const query = "DELETE FROM service WHERE serviceID = ?";
+    const [result] = await db.query(query, [serviceID]);
+    if (result.affectedRows > 0) {
+      res.status(200).json({
+        success: true,
+        message: "Service deleted successfully",
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "Service not found",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error!",
+    });
+  }
+};
 exports.update = async (req, res) => {
-  const serviceID = req.params;
+  console.log(
+    `-----------------------Updating Service (${req.params.serviceID}) by Salon (${req.body.salonID})-----------------------`
+  );
+  const { serviceID } = req.params;
   const { serviceName, servicePrice, durationMinutes } = req.body;
   try {
     const query =
@@ -90,6 +138,9 @@ exports.update = async (req, res) => {
         message: "Service updated successfully",
         data: result,
       });
+      console.log(
+        `Service(${serviceID}) updated successfully by salon (${req.body.salonID})`
+      );
     } else {
       res.status(400).json({
         success: false,
