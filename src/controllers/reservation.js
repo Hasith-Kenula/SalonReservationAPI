@@ -1,3 +1,4 @@
+const { json } = require("body-parser");
 const db = require("../bd");
 const { v4: uuidv4 } = require("uuid");
 
@@ -14,6 +15,13 @@ const { v4: uuidv4 } = require("uuid");
 //   }
 //   return resID;
 // };
+const returnServerErrorMessage = (res, error) => {
+  console.log("Internal Server Error" + error);
+  return res.status(500).json({
+    success: false,
+    message: "Internal Server Error",
+  });
+};
 const generateID = async (salonID, customerID) => {
   let id;
   let exists = true;
@@ -31,18 +39,28 @@ const generateID = async (salonID, customerID) => {
 exports.getAll = async (req, res) => {
   try {
     const [rows] = await db.query("SELECT * FROM reservation");
-    res.status(200).json(rows);
+    if (rows.length > 0) {
+      res.status(200).json({
+        success: true,
+        message: "All reservations retrieved successfully",
+        data: rows,
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "No reservations found",
+      });
+    }
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.messsage });
+    return returnServerErrorMessage(res, err);
   }
 };
 
 exports.getSpecific = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { resID } = req.params;
     const [rows] = await db.query(`SELECT * FROM reservation WHERE resID =?`, [
-      id,
+      resID,
     ]);
 
     res.status(200).json({
@@ -50,8 +68,7 @@ exports.getSpecific = async (req, res) => {
       Data: rows[0],
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    return returnServerErrorMessage(res, err);
   }
 };
 //make a new reservation
@@ -103,6 +120,75 @@ exports.reserve = async (req, res) => {
       });
     }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return returnServerErrorMessage(res, err);
+  }
+};
+
+exports.getReservationsByCustomerID = async (req, res) => {
+  console.log(
+    `-------------------getReservationsByCustomerID (${req.params.customerID})----------------`
+  );
+  try {
+    const { customerID } = req.params;
+    const query = `SELECT
+  r.resID,
+  r.resDate,
+  r.resTime,
+  r.resStatus,
+  s.salonName,
+  s.phone AS salonPhone,
+  GROUP_CONCAT(sv.serviceName) AS reservedServices,
+  SUM(sv.servicePrice) AS totalPrice
+FROM reservation r
+JOIN salon s ON r.salonID = s.salonID
+JOIN reservation_service rs ON r.resID = rs.resID
+JOIN service sv ON rs.serviceID = sv.serviceID
+WHERE r.customerID = ?
+GROUP BY r.resID, r.resDate, r.resTime, r.resStatus, s.salonName, s.phone
+ORDER BY r.resDate DESC, r.resTime DESC`;
+    const [rows] = await db.query(query, [customerID]);
+    if (rows.length > 0) {
+      res.status(200).json({
+        success: true,
+        message: "successfull",
+        data: rows,
+      });
+      console.log(
+        "Successfully fetched reservation data for customerID: " + customerID
+      );
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "No reservations found for customerID: " + customerID,
+      });
+      console.log("No reservations found for customerID: " + customerID);
+    }
+  } catch (error) {
+    return returnServerErrorMessage(res, err);
+  }
+};
+exports.delete = async (req, res) => {
+  console.log(
+    `-------------------delete reservation (${req.params.resID})----------------`
+  );
+  try {
+    const { resID } = req.params;
+    const query = `DELETE FROM reservation WHERE resID = ?`;
+    const [result] = await db.query(query, [resID]);
+    if (result.affectedRows > 0) {
+      res.status(200).json({
+        success: true,
+        message: "Reservation deleted successfully",
+      });
+      console.log("Reservation deleted successfully");
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "No reservation found with resID: " + resID,
+      });
+      console.log("No reservation found with resID: " + resID);
+    }
+  } catch (error) {
+    return returnServerErrorMessage(res, err);
   }
 };
