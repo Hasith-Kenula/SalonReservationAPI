@@ -10,6 +10,8 @@ router.delete("/:resID", reservationController.delete); // delete a reservation
 router.get(
   "/customer/:customerID",
   reservationController.getReservationsByCustomerID
-);
+); // get all reservations for a customer
 
+router.get("/salon/:salonID", reservationController.getReservationsBySalonID); // get all reservations for a salon
+router.put("/:resID/status", reservationController.updateStatus); // update a reservation status from salon(employee)
 module.exports = router;

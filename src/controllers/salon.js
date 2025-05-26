@@ -104,7 +104,7 @@ exports.login = async (req, res) => {
       res.status(200).json({
         success: true,
         message: "Login successfully",
-        Data: rows[0],
+        data: rows[0],
       });
     } else {
       res.status(400).json({
