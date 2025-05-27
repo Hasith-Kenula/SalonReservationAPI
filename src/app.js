@@ -7,6 +7,7 @@ const salonRoutes = require("./routes/salon");
 const customerRoutes = require("./routes/customer");
 const servicesRoutes = require("./routes/service");
 const employeeRoutes = require("./routes/employee");
+const socketRoutes = require("./routes/socket");
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use("/salons", salonRoutes);
 app.use("/customers", customerRoutes);
 app.use("/services", servicesRoutes);
 app.use("/employees", employeeRoutes); //
+app.use("/socket", socketRoutes);
 
 app.get("/test", (req, res) => {
   res.status(200).json({

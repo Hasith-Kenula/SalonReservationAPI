@@ -288,10 +288,19 @@ exports.updateStatus = async (req, res) => {
   try {
     const { resID } = req.params;
     const { resStatus } = req.body;
+    const { employeeID } = req.body;
+    const { employeeName } = req.body;
+    const { customerID } = req.body;
     const { salonID } = req.body;
+
     const io = req.app.get("io");
-    const query = `UPDATE reservation SET resStatus = ? WHERE resID = ?`;
-    const [result] = await db.query(query, [resStatus, resID]);
+
+    console.log(
+      `CustomerID: ${customerID} \n SalonID: ${salonID}, \n EmployeeID: ${employeeID}, \n EmployeeName: ${employeeName}, \n resStatus: ${resStatus}`
+    );
+
+    const query = `UPDATE reservation SET resStatus = ?, employeeID = ? WHERE resID = ?`;
+    const [result] = await db.query(query, [resStatus, employeeID, resID]);
     if (result.affectedRows > 0) {
       const updatedReservationQuery = `
       SELECT
@@ -316,6 +325,7 @@ exports.updateStatus = async (req, res) => {
       if (updatedRows.length > 0) {
         const customerID = updatedRows[0].customerID;
         console.log("checking customerID: " + customerID);
+        console.log(`checking salonID: ${salonID}`);
         io.to(`customer_${customerID}`).emit("reservation:statusUpdate", {
           resID: updatedRows[0].resID,
           resDate: updatedRows[0].resDate,

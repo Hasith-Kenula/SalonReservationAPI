@@ -13,8 +13,9 @@ const io = new Server(server, {
 });
 app.set("io", io);
 io.on("connection", async (socket) => {
-  const { salonID, customerID } = socket.handshake.query;
+  const { salonID, customerID, employeeID } = socket.handshake.query;
   //console.log(`A client connected: ${socket.id} for salonID: ${salonID}`);
+  console.warn(socket.handshake.query);
   if (salonID) {
     socket.join(`salon_${salonID}`);
     console.log(`Socket ${socket.id} joined salon room: ${salonID}`);
@@ -23,11 +24,48 @@ io.on("connection", async (socket) => {
     socket.join(`customer_${customerID}`);
     console.log(`Socket ${socket.id} joined customer room: ${customerID}`);
   }
-
+  if (employeeID) {
+    socket.join(`employee_${employeeID}`);
+    console.log(`Socket ${socket.id} joined employee room: ${employeeID}`);
+  }
   socket.on("disconnect", () => {
     console.log(`A client disconnected: ${socket.id}`);
   });
   // You can add more event listeners here
+  socket.on(
+    "reservation:confirmResponse",
+    async ({
+      resID,
+      customerID,
+      employeeID,
+      salonID,
+      employeeName,
+      confirmed,
+      resStatus,
+    }) => {
+      console.log("reservation:confirmResponse", resID, employeeID, confirmed);
+      if (confirmed) {
+        console.log("Reservation confirmed by customer");
+        io.to(`employee_${employeeID}`).emit("reservation:confirmed", {
+          resID,
+          customerID,
+          employeeID,
+          employeeName,
+          salonID,
+          resStatus,
+          confirmed: confirmed,
+        });
+      } else {
+        console.log("Reservation cancelled by customer");
+        io.to(`employee_${employeeID}`).emit("reservation:rejected", {
+          resID,
+          employeeID,
+          confirmed: confirmed,
+        });
+        return;
+      }
+    }
+  );
 });
 
 server.listen(port, () => {
