@@ -3,7 +3,7 @@ const app = require("./app");
 const { Server } = require("socket.io");
 
 const port = process.env.PORT || 3000;
-
+let count = 0;
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -12,6 +12,7 @@ const io = new Server(server, {
   },
 });
 app.set("io", io);
+const pendingRequests = new Map();
 io.on("connection", async (socket) => {
   const { salonID, customerID, employeeID } = socket.handshake.query;
   //console.log(`A client connected: ${socket.id} for salonID: ${salonID}`);
@@ -33,8 +34,43 @@ io.on("connection", async (socket) => {
   });
   // You can add more event listeners here
   socket.on(
+    "reservation:sendRequestToCustomer",
+    ({ resID, resStatus, customerID, employeeID, employeeName, salonID }) => {
+      console.log(
+        "reservation:sendRequestToCustomer",
+        resID,
+        resStatus,
+        customerID,
+        employeeID,
+        employeeName,
+        salonID
+      );
+      io.to(`customer_${customerID}`).emit("reservation:confirmRequest", {
+        resID: resID,
+        customerID: customerID,
+        employeeID: employeeID,
+        salonID: salonID,
+        employeeName: employeeName,
+        resStatus: resStatus,
+        message: `Do you want to confirm your reservation with ${employeeName}?`,
+      });
+      if (pendingRequests.has(resID)) {
+        clearTimeout(pendingRequests.get(resID));
+      }
+
+      //set timeout to expire request after 30 seconds
+      const timeoutID = setTimeout(() => {
+        io.to(`customer_${customerID}`).emit("reservation:requestExpired", {
+          resID,
+        });
+        pendingRequests.delete(resID);
+      }, 30000); // 30 seconds
+      pendingRequests.set(resID, timeoutID);
+    }
+  );
+  socket.on(
     "reservation:confirmResponse",
-    async ({
+    ({
       resID,
       customerID,
       employeeID,
@@ -43,6 +79,16 @@ io.on("connection", async (socket) => {
       confirmed,
       resStatus,
     }) => {
+      if (!pendingRequests.has(resID)) {
+        io.to(`customer_${customerID}`).emit("reservation:requestExpired", {
+          resID,
+        });
+        return;
+      }
+
+      //clear timeout and delete pending request
+      clearTimeout(pendingRequests.get(resID));
+      pendingRequests.delete(resID);
       console.log("reservation:confirmResponse", resID, employeeID, confirmed);
       if (confirmed) {
         console.log("Reservation confirmed by customer");
