@@ -52,7 +52,7 @@ io.on("connection", async (socket) => {
         salonID: salonID,
         employeeName: employeeName,
         resStatus: resStatus,
-        message: `Do you want to confirm your reservation with ${employeeName}?`,
+        message: `Do you want to start your reservation?`,
       });
       if (pendingRequests.has(resID)) {
         clearTimeout(pendingRequests.get(resID));
