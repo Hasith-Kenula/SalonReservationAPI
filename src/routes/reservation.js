@@ -12,6 +12,14 @@ router.get(
   reservationController.getReservationsByCustomerID
 ); // get all reservations for a customer
 
-router.get("/salon/:salonID", reservationController.getReservationsBySalonID); // get all reservations for a salon
+router.get("/salon/:salonID", reservationController.getReservationsBySalonID); // get all pending reservations for a salon
+router.get(
+  "/employee/processing/:employeeID",
+  reservationController.getProcessingReservationsByEmployeeID
+);
+router.get(
+  "/employee/completed/:employeeID",
+  reservationController.getCompletedReservationsByEmployeeID
+);
 router.put("/:resID/status", reservationController.updateStatus); // update a reservation status from salon(employee)
 module.exports = router;

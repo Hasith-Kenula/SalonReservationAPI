@@ -371,3 +371,88 @@ exports.updateStatus = async (req, res) => {
     return returnServerErrorMessage(res, error);
   }
 };
+
+exports.getProcessingReservationsByEmployeeID = async (req, res) => {
+  try {
+    console.log(
+      "Fetching processing reservations by employeeID" + req.params.employeeID
+    );
+    const { employeeID } = req.params;
+    const query = `SELECT
+  r.resID,
+  r.resDate,
+  r.customerID,
+  r.resTime,
+  r.resStatus,
+  c.fullName AS customerName,
+  c.phone AS customerPhone,
+  GROUP_CONCAT(sv.serviceName) AS reservedServices,
+  SUM(sv.servicePrice) AS totalPrice
+FROM reservation r
+JOIN customer c ON r.customerID = c.customerID
+JOIN reservation_service rs ON r.resID = rs.resID
+JOIN service sv ON rs.serviceID = sv.serviceID
+WHERE r.employeeID = ? AND r.resStatus = 'processing'
+GROUP BY r.resID, r.resDate, r.resTime, r.resStatus, c.fullName, c.phone
+ORDER BY r.resDate ASC, r.resTime ASC`;
+    const values = [employeeID];
+    const [results] = await db.query(query, values);
+    if (results.length > 0) {
+      res.status(200).json({
+        success: true,
+        data: results,
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message:
+          "No processing reservations found for employeeID: " + employeeID,
+      });
+    }
+  } catch (error) {
+    return returnServerErrorMessage(res, error);
+  }
+};
+exports.getCompletedReservationsByEmployeeID = async (req, res) => {
+  console.log(
+    "Fetching completed reservations by employeeID" + req.params.employeeID
+  );
+  try {
+    const { employeeID } = req.params;
+    const query = `
+    SELECT
+  r.resID,
+  r.resDate,
+  r.customerID,
+  r.resTime,
+  r.resStatus,
+  c.fullName AS customerName,
+  c.phone AS customerPhone,
+  GROUP_CONCAT(sv.serviceName) AS reservedServices,
+  SUM(sv.servicePrice) AS totalPrice
+FROM reservation r
+JOIN customer c ON r.customerID = c.customerID
+JOIN reservation_service rs ON r.resID = rs.resID
+JOIN service sv ON rs.serviceID = sv.serviceID
+WHERE r.employeeID = ? AND r.resStatus = 'completed'
+GROUP BY r.resID, r.resDate, r.resTime, r.resStatus, c.fullName, c.phone
+ORDER BY r.resDate ASC, r.resTime ASC
+    `;
+    const values = [employeeID];
+    const [results] = await db.query(query, values);
+    if (results.length > 0) {
+      res.status(200).json({
+        success: true,
+        data: results,
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message:
+          "No completed reservations found for employeeID: " + employeeID,
+      });
+    }
+  } catch (error) {
+    return returnServerErrorMessage(res, error);
+  }
+};

@@ -37,7 +37,7 @@ io.on("connection", async (socket) => {
     "reservation:sendRequestToCustomer",
     ({ resID, resStatus, customerID, employeeID, employeeName, salonID }) => {
       console.log(
-        "reservation:sendRequestToCustomer",
+        "reservation:sendSRequestToCustomer",
         resID,
         resStatus,
         customerID,
@@ -45,6 +45,7 @@ io.on("connection", async (socket) => {
         employeeName,
         salonID
       );
+
       io.to(`customer_${customerID}`).emit("reservation:confirmRequest", {
         resID: resID,
         customerID: customerID,
@@ -52,7 +53,10 @@ io.on("connection", async (socket) => {
         salonID: salonID,
         employeeName: employeeName,
         resStatus: resStatus,
-        message: `Do you want to start your reservation?`,
+        message:
+          resStatus == "processing"
+            ? `Do you want to start your reservation?`
+            : `Your reservation completed , please confirm`,
       });
       if (pendingRequests.has(resID)) {
         clearTimeout(pendingRequests.get(resID));
