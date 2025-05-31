@@ -456,3 +456,48 @@ ORDER BY r.resDate ASC, r.resTime ASC
     return returnServerErrorMessage(res, error);
   }
 };
+
+exports.getTodaysReservationsBYsalonID = async (req, res) => {
+  console.log("Fetching todays reservations by salonID" + req.params.salonID);
+  try {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0"); // getMonth() is 0-based
+    const day = String(today.getDate()).padStart(2, "0");
+
+    const currentDate = `${year}-${month}-${day}`;
+    const { salonID } = req.params;
+
+    const values = [currentDate, salonID];
+
+    const query = `
+      SELECT 
+      r.resID,
+      s.salonID,
+      r.resTime AS startTime,
+      r.resDate,
+      SUM(sr.durationMinutes) AS totalTime,
+      DATE_FORMAT(ADDTIME(r.resTime, SEC_TO_TIME(SUM(sr.durationMinutes) * 60)), '%H:%i') AS endTime
+      FROM reservation r
+      JOIN salon s ON r.salonID = s.salonID
+      JOIN reservation_service sv ON r.resID = sv.resID
+      JOIN service sr ON sv.serviceID = sr.serviceID
+      WHERE r.resDate = ? AND r.salonID= ?
+      GROUP BY resID`;
+    const [results] = await db.query(query, values);
+    if (results.length > 0) {
+      res.status(200).json({
+        success: true,
+        data: results,
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "No reservation found for today",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return returnServerErrorMessage(res, error);
+  }
+};

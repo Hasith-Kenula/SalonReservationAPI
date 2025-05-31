@@ -18,6 +18,10 @@ router.get(
   reservationController.getProcessingReservationsByEmployeeID
 );
 router.get(
+  "/today/:salonID",
+  reservationController.getTodaysReservationsBYsalonID
+); // get today's reserved reservations/times for a salon
+router.get(
   "/employee/completed/:employeeID",
   reservationController.getCompletedReservationsByEmployeeID
 );
