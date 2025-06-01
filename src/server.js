@@ -32,6 +32,14 @@ io.on("connection", async (socket) => {
   socket.on("disconnect", () => {
     console.log(`A client disconnected: ${socket.id}`);
   });
+  socket.on("joinRoom", (roomName) => {
+    console.log(`Socket ${socket.id} joined room: ${roomName}`);
+    socket.join(roomName);
+  });
+  socket.on("leaveRoom", (roomName) => {
+    console.log(`Socket ${socket.id} left room: ${roomName}`);
+    socket.leave(roomName);
+  });
   // You can add more event listeners here
   socket.on(
     "reservation:sendRequestToCustomer",

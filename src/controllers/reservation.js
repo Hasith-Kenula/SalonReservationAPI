@@ -141,6 +141,35 @@ exports.reserve = async (req, res) => {
             totalPrice: newReservations[0].totalPrice,
             salonID: newReservations[0].salonID,
           });
+          const date = new Date();
+          const year = date.getFullYear();
+          const month = (date.getMonth() + 1).toString().padStart(2, "0");
+          const day = date.getDate().toString().padStart(2, "0");
+          if (newReservations[0].resDate == `${year}-${month}-${day}`) {
+            const query = `
+              SELECT 
+              r.resID,
+              s.salonID,
+              r.resTime AS startTime,
+              r.resDate,
+              SUM(sr.durationMinutes) AS totalTime,
+              DATE_FORMAT(ADDTIME(r.resTime, SEC_TO_TIME(SUM(sr.durationMinutes) * 60)), '%H:%i') AS endTime
+              FROM reservation r
+              JOIN salon s ON r.salonID = s.salonID
+              JOIN reservation_service sv ON r.resID = sv.resID
+              JOIN service sr ON sv.serviceID = sr.serviceID
+              WHERE r.resID = ?
+              GROUP BY resID ORDER BY startTime ASC
+            `;
+            const [reservations] = await db.query(query, [resID]);
+            console.log("SalonID: " + salonID);
+            console.log("Reservations: " + reservations[0]);
+            io.to(`salonCustomer_${salonID}`).emit("reservation:todays", {
+              resID: reservations[0].resID,
+              startTime: reservations[0].startTime,
+              endTime: reservations[0].endTime,
+            });
+          }
           res.status(201).json({
             success: true,
             message: "successfull",
@@ -483,7 +512,7 @@ exports.getTodaysReservationsBYsalonID = async (req, res) => {
       JOIN reservation_service sv ON r.resID = sv.resID
       JOIN service sr ON sv.serviceID = sr.serviceID
       WHERE r.resDate = ? AND r.salonID= ?
-      GROUP BY resID`;
+      GROUP BY resID ORDER BY startTime ASC`;
     const [results] = await db.query(query, values);
     if (results.length > 0) {
       res.status(200).json({
