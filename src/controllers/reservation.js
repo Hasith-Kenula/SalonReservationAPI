@@ -530,3 +530,156 @@ exports.getTodaysReservationsBYsalonID = async (req, res) => {
     return returnServerErrorMessage(res, error);
   }
 };
+
+const getReservations = async (salonID, status, date) => {
+  try {
+    const query = `
+      SELECT 
+      r.resID,
+      c.fullName AS customerName,
+      c.phone AS customerPhone,
+      e.fullName AS employeeName,
+      r.resStatus,
+      r.resDate,
+      DATE_FORMAT(r.resTime, '%h:%i %p') AS resTime,
+      GROUP_CONCAT(sv.serviceName) AS reservedServices,
+      SUM(sv.servicePrice) AS totalPrice
+
+      
+      FROM reservation r
+      JOIN customer c ON r.customerID = c.customerID
+      JOIN reservation_service rs ON r.resID = rs.resID
+      JOIN service sv ON rs.serviceID = sv.serviceID
+      JOIN salon s ON r.salonID = s.salonID
+      LEFT JOIN employee e ON r.employeeID = e.employeeID
+
+      WHERE r.salonID = ? AND r.resStatus IN (?) AND r.resDate = ?
+
+      GROUP BY r.resID
+      ORDER BY r.resTime ASC;
+
+    `;
+    const values = [salonID, status, date];
+    const [results] = await db.query(query, values);
+    if (results.length > 0) {
+      return {
+        success: true,
+        message: "Reservation found",
+        data: results,
+      };
+    } else {
+      return {
+        success: false,
+        message: "No reservation found for today",
+      };
+    }
+  } catch (error) {
+    console.log(error);
+    return {
+      success: false,
+      message: error,
+    };
+  }
+};
+
+exports.getTodaysPendingReservationBySalonID = async (req, res) => {
+  try {
+    const { salonID } = req.params;
+
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+
+    const todayDate = `${year}-${month}-${day}`;
+    console.log(todayDate);
+
+    const pendingReservaion = await getReservations(
+      salonID,
+      ["pending"],
+      todayDate
+    );
+    console.log(pendingReservaion);
+    if (pendingReservaion.success) {
+      res.status(200).json({
+        success: true,
+        message: pendingReservaion.message,
+        data: pendingReservaion.data,
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: pendingReservaion.message,
+      });
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
+exports.getTodaysProcessingReservationBySalonID = async (req, res) => {
+  try {
+    const { salonID } = req.params;
+
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+
+    const todayDate = `${year}-${month}-${day}`;
+
+    const processingReservaion = await getReservations(
+      salonID,
+      ["processing"],
+      todayDate
+    );
+    console.log(processingReservaion);
+    if (processingReservaion.success) {
+      res.status(200).json({
+        success: true,
+        message: processingReservaion.message,
+        data: processingReservaion.data,
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: processingReservaion.message,
+      });
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
+exports.getTodaysCompletedReservationBySalonID = async (req, res) => {
+  try {
+    const { salonID } = req.params;
+
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+    const todayDate = `${year}-${month}-${day}`;
+
+    const completedReservaion = await getReservations(
+      salonID,
+      ["completed"],
+      todayDate
+    );
+    console.log(completedReservaion);
+    if (completedReservaion.success) {
+      res.status(200).json({
+        success: true,
+        message: completedReservaion.message,
+        data: completedReservaion.data,
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: completedReservaion.message,
+      });
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+};

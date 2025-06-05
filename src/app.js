@@ -1,6 +1,5 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-
 //routers
 const reservationRoutes = require("./routes/reservation");
 const salonRoutes = require("./routes/salon");
@@ -8,6 +7,8 @@ const customerRoutes = require("./routes/customer");
 const servicesRoutes = require("./routes/service");
 const employeeRoutes = require("./routes/employee");
 const socketRoutes = require("./routes/socket");
+const otpRoutes = require("./routes/otp");
+const emailRoutes = require("./routes/email");
 
 const app = express();
 
@@ -26,7 +27,8 @@ app.use((req, res, next) => {
   }
   next();
 });
-
+app.use("/email", emailRoutes);
+app.use("/otp", otpRoutes);
 app.use("/reservations", reservationRoutes);
 app.use("/salons", salonRoutes);
 app.use("/customers", customerRoutes);

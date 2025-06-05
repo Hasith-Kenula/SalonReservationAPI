@@ -13,6 +13,24 @@ router.get(
 ); // get all reservations for a customer
 
 router.get("/salon/:salonID", reservationController.getReservationsBySalonID); // get all pending reservations for a salon
+
+//----------------------------------------------------------------------
+
+router.get(
+  "/todays_pending_reservations/:salonID",
+  reservationController.getTodaysPendingReservationBySalonID
+); //
+router.get(
+  "/todays_processing_reservations/:salonID",
+  reservationController.getTodaysProcessingReservationBySalonID
+); //
+router.get(
+  "/todays_completed_reservations/:salonID",
+  reservationController.getTodaysCompletedReservationBySalonID
+); //
+
+//----------------------------------------------------------------------
+
 router.get(
   "/employee/processing/:employeeID",
   reservationController.getProcessingReservationsByEmployeeID
