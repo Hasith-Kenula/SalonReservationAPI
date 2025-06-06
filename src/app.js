@@ -9,6 +9,7 @@ const employeeRoutes = require("./routes/employee");
 const socketRoutes = require("./routes/socket");
 const otpRoutes = require("./routes/otp");
 const emailRoutes = require("./routes/email");
+const salonOpenRoutes = require("./routes/salonOpening");
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use((req, res, next) => {
   next();
 });
 app.use("/email", emailRoutes);
+app.use("/salon_opening_hours", salonOpenRoutes);
 app.use("/otp", otpRoutes);
 app.use("/reservations", reservationRoutes);
 app.use("/salons", salonRoutes);
