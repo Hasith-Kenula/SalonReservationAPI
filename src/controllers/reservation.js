@@ -153,7 +153,7 @@ exports.reserve = async (req, res) => {
               r.resTime AS startTime,
               r.resDate,
               SUM(sr.durationMinutes) AS totalTime,
-              DATE_FORMAT(ADDTIME(r.resTime, SEC_TO_TIME(SUM(sr.durationMinutes) * 60)), '%H:%i') AS endTime
+              DATE_FORMAT(ADDTIME(r.resTime, SEC_TO_TIME(SUM(sr.durationMinutes) * 60)), '%l:%i') AS endTime
               FROM reservation r
               JOIN salon s ON r.salonID = s.salonID
               JOIN reservation_service sv ON r.resID = sv.resID
@@ -205,7 +205,7 @@ exports.getReservationsByCustomerID = async (req, res) => {
     const query = `SELECT
   r.resID,
   r.resDate,
-  r.resTime,
+  DATE_FORMAT(r.resTime, '%l:%i %p') AS resTime,
   r.resStatus,
   s.salonName,
   s.phone AS salonPhone,
@@ -506,7 +506,7 @@ exports.getTodaysReservationsBYsalonID = async (req, res) => {
       r.resTime AS startTime,
       r.resDate,
       SUM(sr.durationMinutes) AS totalTime,
-      DATE_FORMAT(ADDTIME(r.resTime, SEC_TO_TIME(SUM(sr.durationMinutes) * 60)), '%H:%i') AS endTime
+      DATE_FORMAT(ADDTIME(r.resTime, SEC_TO_TIME(SUM(sr.durationMinutes) * 60)), '%l:%i') AS endTime
       FROM reservation r
       JOIN salon s ON r.salonID = s.salonID
       JOIN reservation_service sv ON r.resID = sv.resID
@@ -541,7 +541,7 @@ const getReservations = async (salonID, status, date) => {
       e.fullName AS employeeName,
       r.resStatus,
       r.resDate,
-      DATE_FORMAT(r.resTime, '%h:%i %p') AS resTime,
+      DATE_FORMAT(r.resTime, '%l:%i %p') AS resTime,
       GROUP_CONCAT(sv.serviceName) AS reservedServices,
       SUM(sv.servicePrice) AS totalPrice
 

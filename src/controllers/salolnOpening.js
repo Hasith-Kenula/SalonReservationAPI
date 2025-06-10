@@ -1,9 +1,20 @@
+const { json } = require("body-parser");
 const db = require("../bd");
 
 exports.getSalonOpening = async (req, res) => {
   try {
     const { salonID } = req.params;
-    const query = `SELECT * FROM salon_opening_hours WHERE salonID=?`;
+    const query = `
+     SELECT 
+
+     id,
+     salonID,
+     day_of_week,
+     open_time,
+     close_time,
+     is_closed
+
+     FROM salon_opening_hours WHERE salonID=?`;
     const [results] = await db.query(query, [salonID]);
     if (results.length > 0) {
       res.status(200).json({
@@ -28,7 +39,12 @@ exports.updateSalonOpening = async (req, res) => {
     const query = `UPDATE salon_opening_hours SET ? WHERE id=?`;
     const [results] = await db.query(query, [openHour, openHour.id]);
     if (results.affectedRows > 0) {
-      res.status(200).json({
+      const io = req.app.get("io");
+      io.to(`salonCustomer_${openHour.salonID}`).emit(
+        "salonOpeningHours:update",
+        openHour
+      );
+      res.status(201).json({
         success: true,
         message: "Saved successfully",
       });
