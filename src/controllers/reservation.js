@@ -71,10 +71,51 @@ exports.getSpecific = async (req, res) => {
     return returnServerErrorMessage(res, err);
   }
 };
+const validateBeforeReservation = async (salonID, resDate, resTime) => {
+  const date = new Date(resDate);
+  const dayName = date.toLocaleDateString("en-US", { weekday: "long" });
+  console.log(`DAY NAME : ${dayName} RES TIME: ${resTime}`);
+  const queryForValidateOpeningHour = `
+      SELECT * 
+      FROM salon_opening_hours
+      WHERE salonID = ? AND day_of_week = ? AND ? BETWEEN open_time AND close_time AND is_closed = 0
+    `;
+  const [openingHours] = await db.query(queryForValidateOpeningHour, [
+    salonID,
+    dayName,
+    resTime,
+  ]);
+  console.log("Opening Hours: ", openingHours.length);
+  if (openingHours.length === 0) {
+    return {
+      success: false,
+      message: `Salon is closed on ${dayName} at ${resTime}. Please choose a different time.`,
+    }; // Salon is closed on this day or time
+  } else {
+    return {
+      success: true,
+    };
+  }
+};
 //make a new reservation
 exports.reserve = async (req, res) => {
   try {
     const { salonID, customerID, resDate, resTime, resServices } = req.body;
+    const validate_day_time = await validateBeforeReservation(
+      salonID,
+      resDate,
+      resTime
+    );
+    if (validate_day_time.success === false) {
+      console.log(
+        `Salon is closed on ${resDate} at ${resTime}. Please choose a different time.`
+      );
+      return res.status(400).json({
+        success: false,
+        message: `${validate_day_time.message}`,
+      });
+    }
+
     console.log(resServices);
     const resID = await generateID(salonID, customerID);
     console.log(
