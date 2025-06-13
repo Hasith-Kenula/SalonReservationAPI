@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+const db = require("../bd");
 require("dotenv").config();
 const otpStore = {};
 
@@ -14,16 +15,43 @@ const transporter = nodemailer.createTransport({
 
 exports.sendOTP = async (req, res) => {
   console.log("SENDING OTP to ", req.body.email);
-  const { email } = req.body;
+
+  const { email, passwordChange } = req.body;
+
+  if (passwordChange) {
+    const queryCustomer = `SELECT * FROM customer WHERE email = ?`;
+    const queryEmployee = `SELECT * FROM employee WHERE email = ?`;
+    const querySalon = `SELECT * FROM salon WHERE email = ?`;
+
+    const [rows] = await db.query(queryCustomer, [email]);
+    const [rowsEmployee] = await db.query(queryEmployee, [email]);
+    const [rowsSalon] = await db.query(querySalon, [email]);
+
+    if (
+      rows.length === 0 &&
+      rowsEmployee.length === 0 &&
+      rowsSalon.length === 0
+    ) {
+      return res.status(404).json({
+        success: false,
+        message: "Email not found in database",
+      });
+    }
+  }
+
   const otp = Math.floor(Math.random() * 900000) + 100000;
   otpStore[email] = { otp, expires: Date.now() + 500000 }; // 5 minutes
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: "OTP for verification",
+    subject: !passwordChange
+      ? "OTP Code for Email Verification"
+      : "OTP Code for Password Change",
     html: `
     <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-      <h2 style="color: #4CAF50;">Email Verification</h2>
+      <h2 style="color: #4CAF50;">${
+        !passwordChange ? "Email Verification" : "Password Change"
+      }</h2>
       <p>Hello,</p>
       <p>Your OTP code is:</p>
       <div style="font-size: 24px; font-weight: bold; color: #000; margin: 10px 0;">

@@ -10,6 +10,7 @@ const socketRoutes = require("./routes/socket");
 const otpRoutes = require("./routes/otp");
 const emailRoutes = require("./routes/email");
 const salonOpenRoutes = require("./routes/salonOpening");
+const passwordChangeRoutes = require("./routes/passwordChange");
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use((req, res, next) => {
   next();
 });
 app.use("/email", emailRoutes);
+app.use("/password_change", passwordChangeRoutes);
 app.use("/salon_opening_hours", salonOpenRoutes);
 app.use("/otp", otpRoutes);
 app.use("/reservations", reservationRoutes);
