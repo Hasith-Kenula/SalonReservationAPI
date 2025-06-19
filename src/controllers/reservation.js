@@ -359,7 +359,7 @@ exports.updateStatus = async (req, res) => {
     const { resID } = req.params;
     const { resStatus } = req.body;
     const { employeeID } = req.body;
-    const { employeeName } = req.body;
+    const { employeeName } = req.body | null;
     const { customerID } = req.body;
     const { salonID } = req.body;
 
