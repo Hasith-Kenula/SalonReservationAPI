@@ -11,6 +11,7 @@ const otpRoutes = require("./routes/otp");
 const emailRoutes = require("./routes/email");
 const salonOpenRoutes = require("./routes/salonOpening");
 const passwordChangeRoutes = require("./routes/passwordChange");
+const paymentRoutes = require("./routes/payment");
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use((req, res, next) => {
   }
   next();
 });
+app.use("/payments", paymentRoutes);
 app.use("/email", emailRoutes);
 app.use("/password_change", passwordChangeRoutes);
 app.use("/salon_opening_hours", salonOpenRoutes);
