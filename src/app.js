@@ -11,7 +11,7 @@ const otpRoutes = require("./routes/otp");
 const emailRoutes = require("./routes/email");
 const salonOpenRoutes = require("./routes/salonOpening");
 const passwordChangeRoutes = require("./routes/passwordChange");
-const paymentRoutes = require("./routes/payment");
+const stripePayment = require("./routes/stripePayment");
 
 const app = express();
 
@@ -34,7 +34,8 @@ app.use((req, res, next) => {
   console.log(`[${req.method}] ${req.url}`);
   next();
 });
-app.use("/payments", paymentRoutes);
+// app.use("/payments", paymentRoutes);
+app.use("/stripe-payment", stripePayment);
 app.use("/email", emailRoutes);
 app.use("/password_change", passwordChangeRoutes);
 app.use("/salon_opening_hours", salonOpenRoutes);

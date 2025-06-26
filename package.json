@@ -28,6 +28,7 @@
     "nodemailer": "^7.0.3",
     "nodemon": "^3.1.10",
     "socket.io": "^4.8.1",
+    "stripe": "^18.2.1",
     "textflow.js": "^0.1.4",
     "twilio": "^5.7.0",
     "uuid": "^11.1.0"
