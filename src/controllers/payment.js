@@ -2,7 +2,7 @@ const md5 = require("crypto-js/md5");
 const crypto = require("crypto-js");
 
 const merchant_id = "1230814";
-const merchant_secret = "ODQ4NTc2NDc4MjY3NDE1MzM2ODExNDU0MDk0NzgxODQwMzY3MTY4";
+const merchant_secret = "Mjg3OTA2NDQ5OTI2MTk2NTk1MjgzMDQ5OTgzOTk5NjUzNjgwODEz";
 // const merchant_secret = "NjQ4NzAxMTUwODk2MTAxMDk0MTI2NzAwNTY0Mjk2ODQ2OTYxMg==";
 const currency = "LKR";
 const country = "Sri Lanka";
