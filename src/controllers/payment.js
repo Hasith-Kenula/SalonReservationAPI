@@ -1,4 +1,5 @@
 const md5 = require("crypto-js/md5");
+const crypto = require("crypto-js");
 
 const merchant_id = "1230814";
 const merchant_secret = "ODQ4NTc2NDc4MjY3NDE1MzM2ODExNDU0MDk0NzgxODQwMzY3MTY4";
@@ -32,9 +33,12 @@ exports.payReservation = (req, res) => {
     console.log(`Final hash: ${hash}`);
     const paymentData = {
       merchant_id,
-      return_url: "http://192.168.1.2:3000/payments/payment-success",
-      cancel_url: "http://192.168.1.2:3000/payments/payment-cancel",
-      notify_url: "http://192.168.1.2:3000/payments/payhere/notify",
+      return_url:
+        "https://salonreservationapi.up.railway.app/payments/payment-success",
+      cancel_url:
+        "https://salonreservationapi.up.railway.app/payments/payment-cancel",
+      notify_url:
+        "https://salonreservationapi.up.railway.app/payments/payhere/notify",
       order_id,
       items,
       amount: amountFormated,
@@ -60,25 +64,20 @@ exports.payhereNotify = (req, res) => {
   const {
     merchant_id,
     order_id,
-    payment_id,
     payhere_amount,
     payhere_currency,
     status_code,
     md5sig,
   } = req.body;
 
-  const localSig = crypto
-    .createHash("md5")
-    .update(
-      merchant_id +
-        order_id +
-        payhere_amount +
-        payhere_currency +
-        status_code +
-        crypto.createHash("md5").update(merchant_secret).digest("hex")
-    )
-    .digest("hex")
-    .toUpperCase();
+  const localSig = md5(
+    merchant_id +
+      order_id +
+      payhere_amount +
+      payhere_currency +
+      status_code +
+      md5(merchant_secret).toUpperCase()
+  );
 
   if (localSig === md5sig) {
     // ✅ Valid payment
