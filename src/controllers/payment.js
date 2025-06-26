@@ -78,7 +78,9 @@ exports.payhereNotify = (req, res) => {
       payhere_currency +
       status_code +
       md5(merchant_secret).toString().toUpperCase()
-  );
+  )
+    .toString()
+    .toUpperCase();
 
   if (localSig === md5sig) {
     // ✅ Valid payment
