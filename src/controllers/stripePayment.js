@@ -32,6 +32,9 @@ exports.paymentSheet = async (req, res) => {
   try {
     // Use an existing Customer ID if this is a returning customer.
     const customer = await stripe.customers.create();
+    // const customer = {
+    //   id: "cus_SZknmmE10EHWcv",
+    // };
     const ephemeralKey = await stripe.ephemeralKeys.create(
       { customer: customer.id },
       { apiVersion: "2025-05-28.basil" }
