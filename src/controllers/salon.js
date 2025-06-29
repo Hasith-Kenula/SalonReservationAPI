@@ -123,11 +123,10 @@ exports.login = async (req, res) => {
 };
 exports.update = async (req, res) => {
   console.log("--------------Updating salon--------------: ");
+
   try {
     const { salonID } = req.params;
     const { salonName, ownerName, phone, address } = req.body;
-    console.log(req.params + req.body);
-
     const query =
       "UPDATE salon SET salonName = ?, ownerName = ?, phone = ?, address = ? WHERE salonID = ?";
     const [result] = await db.query(query, [
@@ -161,10 +160,8 @@ const getTotalRevenueForSpecificDate = async (salonID, date) => {
   try {
     const query = `
       SELECT 
-      r.resID,
       r.resDate,
       r.salonID,
-      rs.serviceID,
       SUM(sv.servicePrice) AS revenue,
       r.resStatus
 

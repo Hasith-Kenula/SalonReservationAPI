@@ -8,9 +8,10 @@ const generateID = async () => {
   let exists = true;
   while (exists) {
     id = uuidv4().replace(/-/g, "").substring(0, 8);
-    const [rows] = await db.query("SELECT * FROM employee WHERE empID = ?", [
-      id,
-    ]);
+    const [rows] = await db.query(
+      "SELECT * FROM employee WHERE employeeID = ?",
+      [id]
+    );
     exists = rows.length > 0;
   }
   return id;
@@ -27,9 +28,10 @@ const isEmployeeExisit = async (phone) => {
 };
 const getEmployeeByID = async (id) => {
   try {
-    const [rows] = await db.query("SELECT * FROM employee WHERE empID = ?", [
-      id,
-    ]);
+    const [rows] = await db.query(
+      "SELECT * FROM employee WHERE employeeID = ?",
+      [id]
+    );
     return rows[0];
   } catch (error) {
     console.log(error);
@@ -51,7 +53,7 @@ exports.create = async (req, res) => {
 
     const empID = await generateID();
 
-    const query = `INSERT INTO employee (empID, salonID, fullName, phone, password) VALUES (?, ?, ?, ?, ?)`;
+    const query = `INSERT INTO employee (employeeID, salonID, fullName, phone, password, email) VALUES (?, ?, ?, ?, ?, '')`;
     const values = [empID, salonID, fullName, phone, password];
     const [rows] = await db.query(query, values);
 
@@ -116,7 +118,7 @@ exports.update = async (req, res) => {
     const { empID } = req.params;
     const { fullName, phone, password } = req.body;
     const query =
-      "UPDATE employee SET fullName = ?, phone = ?, password = ? WHERE empID = ?";
+      "UPDATE employee SET fullName = ?, phone = ?, password = ? WHERE employeeID = ?";
     const values = [fullName, phone, password, empID];
     const [rows] = await db.query(query, values);
     if (rows.affectedRows > 0) {
@@ -204,7 +206,7 @@ exports.delete = async (req, res) => {
   console.log(`-------------------Deleting employee...-------------------`);
   try {
     const { empID } = req.params;
-    const query = "DELETE FROM employee WHERE empID = ?";
+    const query = "DELETE FROM employee WHERE employeeID = ?";
     const [rows] = await db.query(query, [empID]);
     if (rows.affectedRows > 0) {
       res.status(200).json({

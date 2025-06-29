@@ -8,7 +8,7 @@ router.post("/register", salonController.register); // register a new salon
 router.post("/login", salonController.login); //login a salon
 
 router.get("/:salonID", salonController.getSpecific); // get specific salon by ID
-router.put("/:salonID", salonController.update);
+router.put("/update/:salonID", salonController.update);
 router.get("/today_stats/:salonID", salonController.todayStats);
 
 module.exports = router;
