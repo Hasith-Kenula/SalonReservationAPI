@@ -118,17 +118,21 @@ exports.update = async (req, res) => {
   );
   try {
     const { customerID } = req.params;
-    const { fullName, phone, address } = req.body;
+    const { fullName, phone, address, latitude, longitude } = req.body;
     console.log("Data: " + req.params.customerID);
     console.log("Data: " + req.body.fullName);
     console.log("Data: " + req.body.phone);
     console.log("Data: " + req.body.address);
+    console.log("Data: " + req.body.latitude);
+    console.log("Data: " + req.body.longitude);
     const query =
-      "UPDATE customer SET fullName = ?, phone = ?, address = ? WHERE customerID = ?";
+      "UPDATE customer SET fullName = ?, phone = ?, address = ?, latitude = ?, longitude = ? WHERE customerID = ?";
     const [result] = await db.query(query, [
       fullName,
       phone,
       address,
+      latitude,
+      longitude,
       customerID,
     ]);
     console.log("Result: " + result.affectedRows);
@@ -136,6 +140,7 @@ exports.update = async (req, res) => {
       console.log("customer updated");
       res.status(200).json({
         success: true,
+        message: "Profile updated successfully",
       });
     } else {
       res.status(400).json({

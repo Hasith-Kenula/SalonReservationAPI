@@ -13,6 +13,7 @@ const salonOpenRoutes = require("./routes/salonOpening");
 const passwordChangeRoutes = require("./routes/passwordChange");
 const stripePayment = require("./routes/stripePayment");
 const notificationRoutes = require("./routes/notification");
+const locationRoutes = require("./routes/location");
 
 const app = express();
 
@@ -36,7 +37,8 @@ app.use((req, res, next) => {
   next();
 });
 // app.use("/payments", paymentRoutes);
-app.use("/notification", notificationRoutes);
+app.use("/locations", locationRoutes);
+app.use("/notifications", notificationRoutes);
 app.use("/stripe-payment", stripePayment);
 app.use("/email", emailRoutes);
 app.use("/password_change", passwordChangeRoutes);

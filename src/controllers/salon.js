@@ -126,14 +126,17 @@ exports.update = async (req, res) => {
 
   try {
     const { salonID } = req.params;
-    const { salonName, ownerName, phone, address } = req.body;
+    const { salonName, ownerName, phone, address, latitude, longitude } =
+      req.body;
     const query =
-      "UPDATE salon SET salonName = ?, ownerName = ?, phone = ?, address = ? WHERE salonID = ?";
+      "UPDATE salon SET salonName = ?, ownerName = ?, phone = ?, address = ?, latitude = ?, longitude = ? WHERE salonID = ?";
     const [result] = await db.query(query, [
       salonName,
       ownerName,
       phone,
       address,
+      latitude,
+      longitude,
       salonID,
     ]);
     if (result.affectedRows > 0) {
