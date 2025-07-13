@@ -54,7 +54,7 @@ exports.getSpecific = (req, res) => {
 exports.register = async (req, res) => {
   console.log("Registering a new salon");
   try {
-    const { salonName, ownerName, phone, password, address } = req.body;
+    const { salonName, ownerName, phone, password, address, email } = req.body;
     console.log(
       `Data: ${salonName}, ${ownerName}, ${phone}, ${password}, ${address}`
     );
@@ -71,7 +71,7 @@ exports.register = async (req, res) => {
     const salonID = await generateID();
     console.log(`SalonID: ${salonID}`);
     const query =
-      "INSERT INTO salon (salonID, SalonName, ownerName, phone, password, address) VALUES(?, ?, ?, ?, ?, ?)";
+      "INSERT INTO salon (salonID, SalonName, ownerName, phone, password, address, email) VALUES(?, ?, ?, ?, ?, ?, ?)";
     const [result] = await db.query(query, [
       salonID,
       salonName,
@@ -79,6 +79,7 @@ exports.register = async (req, res) => {
       phone,
       password,
       address,
+      email,
     ]);
     if (result.affectedRows > 0) {
       res.json({
